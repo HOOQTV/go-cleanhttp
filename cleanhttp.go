@@ -37,6 +37,23 @@ func DefaultPooledTransport() *http.Transport {
 	return transport
 }
 
+// Pooled transport for load testing
+func LoadPooledTransport() *http.Transport {
+	transport := &http.Transport{
+		Proxy: http.ProxyFromEnvironment,
+		DialContext: (&net.Dialer{
+			Timeout: 60 * time.Second,
+			KeepAlive: 60 * 60 * time.Second, // May be too much?
+			DualStack: true,
+		}).DialContext,
+		MaxIdleConns: 1024,
+		MaxIdleConnsPerHost: runtime.GOMAXPROCS(0) + 1,
+		IdleConnTimeout: 90 * time.Second,
+		TLSHandshakeTimeout: 10 * time.Second,
+		ExpectContinueTimeout: 1 * time.Second,
+	}
+}
+
 // DefaultClient returns a new http.Client with similar default values to
 // http.Client, but with a non-shared Transport, idle connections disabled, and
 // keepalives disabled.
@@ -53,5 +70,12 @@ func DefaultClient() *http.Client {
 func DefaultPooledClient() *http.Client {
 	return &http.Client{
 		Transport: DefaultPooledTransport(),
+	}
+}
+
+// LoadPooledClient returns a new http.Client for load testing
+func LoadPooledClient() *http.Client {
+	return &http.Client{
+		Transport: LoadPooledTransport(),
 	}
 }
