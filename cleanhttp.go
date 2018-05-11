@@ -55,3 +55,15 @@ func DefaultPooledClient() *http.Client {
 		Transport: DefaultPooledTransport(),
 	}
 }
+
+// NewPooledClientWithConfig returns a new http.Client with addition argument that
+// enable to create custom shared Transport.
+func NewPooledClientWithConfig(config *http.Transport) *http.Client {
+	if config == nil {
+		config = DefaultPooledTransport()
+	}
+
+	return &http.Client{
+		Transport: config,
+	}
+}
